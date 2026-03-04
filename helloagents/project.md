@@ -5,6 +5,7 @@
 ## 技术栈
 - **核心:** Node.js >= 18 / TypeScript 5
 - **CLI:** commander
+- **Web:** express + 原生 HTML/CSS/JS
 - **构建:** tsc
 
 ---
@@ -22,6 +23,5 @@
 ---
 
 ## 测试与流程
-- **测试:** 当前以构建与手工回归为主；后续补充规则单测与端到端测试。
+- **测试:** 运行 `npm run build` + `npm test` 作为基础质量门槛。
 - **提交:** 建议采用 Conventional Commits（feat/fix/refactor/docs/test/chore）。
-

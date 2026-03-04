@@ -1,4 +1,4 @@
-import { ClassifiedCommit, RiskFinding } from "./types.js";
+import { ClassifiedCommit, Lang, RiskFinding } from "./types.js";
 
 function addFinding(
   findings: RiskFinding[],
@@ -15,7 +15,7 @@ function addFinding(
   });
 }
 
-export function detectRisks(commits: ClassifiedCommit[], lang: "zh" | "en"): RiskFinding[] {
+export function detectRisks(commits: ClassifiedCommit[], lang: Lang): RiskFinding[] {
   const findings: RiskFinding[] = [];
 
   for (const commit of commits) {
@@ -23,7 +23,7 @@ export function detectRisks(commits: ClassifiedCommit[], lang: "zh" | "en"): Ris
     const text = `${commit.subject}\n${commit.body}\n${commit.diff}`.toLowerCase();
     const deletedLines = (commit.diff.match(/^\-/gm) ?? []).length;
 
-    if (/migrations?\/|schema\.sql|prisma\/schema\.prisma/.test(files) || /\balter table\b|\bdrop table\b/.test(text)) {
+    if (/migrations?\/|schema\.sql|prisma\/schema\.prisma|typeorm/.test(files) || /\balter table\b|\bdrop table\b/.test(text)) {
       addFinding(
         findings,
         commit,
@@ -33,7 +33,7 @@ export function detectRisks(commits: ClassifiedCommit[], lang: "zh" | "en"): Ris
       );
     }
 
-    if (/\.env|config|settings|docker-compose|k8s|helm|terraform/.test(files)) {
+    if (/(^|\/)\.env|config|settings|docker-compose|k8s|helm|terraform|\.github\/workflows/.test(files)) {
       addFinding(
         findings,
         commit,
@@ -43,7 +43,7 @@ export function detectRisks(commits: ClassifiedCommit[], lang: "zh" | "en"): Ris
       );
     }
 
-    if (/^[-+].*\b(public|export)\b.*\(/m.test(commit.diff) || /^[-+].*controller|route|api/m.test(commit.diff)) {
+    if (/^[-+].*\b(public|export)\b.*\(/m.test(commit.diff) || /^[-+].*(controller|route|api)/m.test(commit.diff)) {
       addFinding(
         findings,
         commit,
@@ -64,10 +64,10 @@ export function detectRisks(commits: ClassifiedCommit[], lang: "zh" | "en"): Ris
     }
   }
 
-  return findings;
+  return dedupeFindings(findings);
 }
 
-export function buildRollbackAdvice(commits: ClassifiedCommit[], risks: RiskFinding[], lang: "zh" | "en"): string[] {
+export function buildRollbackAdvice(commits: ClassifiedCommit[], risks: RiskFinding[], lang: Lang): string[] {
   const tips: string[] = [];
   const highRisk = risks.some((x) => x.severity === "high");
   const hasDb = risks.some((x) => /database|数据库/.test(x.title.toLowerCase()));
@@ -85,4 +85,16 @@ export function buildRollbackAdvice(commits: ClassifiedCommit[], risks: RiskFind
   }
 
   return tips;
+}
+
+function dedupeFindings(findings: RiskFinding[]): RiskFinding[] {
+  const seen = new Set<string>();
+  const result: RiskFinding[] = [];
+  for (const item of findings) {
+    const key = `${item.commitSha}:${item.title}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(item);
+  }
+  return result;
 }

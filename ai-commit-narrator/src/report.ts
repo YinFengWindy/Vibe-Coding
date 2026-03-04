@@ -1,6 +1,6 @@
-import { ClassifiedCommit, NarrationReport, RiskFinding } from "./types.js";
+import { ClassifiedCommit, Lang, NarrationReport, RiskFinding } from "./types.js";
 
-function topHighlights(commits: ClassifiedCommit[], lang: "zh" | "en"): string[] {
+function topHighlights(commits: ClassifiedCommit[], lang: Lang): string[] {
   const byType = new Map<string, number>();
   for (const c of commits) {
     byType.set(c.type, (byType.get(c.type) ?? 0) + 1);
@@ -17,7 +17,10 @@ export function buildReport(
   commits: ClassifiedCommit[],
   risks: RiskFinding[],
   rollbackAdvice: string[],
-  lang: "zh" | "en"
+  lang: Lang,
+  repoPath: string,
+  query: string,
+  llmSummary?: string[]
 ): NarrationReport {
   return {
     generatedAt: new Date().toISOString(),
@@ -25,7 +28,12 @@ export function buildReport(
     commits,
     highlights: topHighlights(commits, lang),
     risks,
-    rollbackAdvice
+    rollbackAdvice,
+    llmSummary,
+    meta: {
+      repoPath,
+      query
+    }
   };
 }
 
@@ -42,7 +50,15 @@ export function toMarkdown(report: NarrationReport): string {
   lines.push("");
   lines.push(`- ${isEn ? "Generated At" : "生成时间"}: ${report.generatedAt}`);
   lines.push(`- ${isEn ? "Commit Count" : "提交数量"}: ${report.commits.length}`);
+  lines.push(`- ${isEn ? "Repo Path" : "仓库路径"}: ${report.meta.repoPath}`);
+  lines.push(`- ${isEn ? "Query" : "查询条件"}: ${report.meta.query}`);
   lines.push("");
+  if (report.llmSummary && report.llmSummary.length > 0) {
+    lines.push(`## ${isEn ? "AI Executive Summary" : "AI 执行摘要"}`);
+    lines.push("");
+    lines.push(...report.llmSummary.map((x) => `- ${x}`));
+    lines.push("");
+  }
   lines.push(`## ${isEn ? "Highlights" : "变更亮点"}`);
   lines.push("");
   if (report.highlights.length === 0) lines.push(`- ${isEn ? "No highlights." : "暂无亮点。"} `);
@@ -69,4 +85,8 @@ export function toMarkdown(report: NarrationReport): string {
   lines.push("");
 
   return lines.join("\n");
+}
+
+export function toJson(report: NarrationReport): string {
+  return JSON.stringify(report, null, 2);
 }

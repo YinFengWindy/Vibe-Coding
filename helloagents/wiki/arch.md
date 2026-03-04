@@ -3,11 +3,15 @@
 ## 总体架构
 ```mermaid
 flowchart TD
-    A[CLI入口 src/index.ts] --> B[Git采集 src/git.ts]
-    B --> C[分类引擎 src/classifier.ts]
-    C --> D[风险引擎 src/risk.ts]
-    D --> E[报告构建 src/report.ts]
-    E --> F[Markdown文件输出]
+    A1[CLI入口 src/index.ts] --> B[应用层 src/app.ts]
+    A2[Web入口 src/server.ts] --> B
+    B --> C[Git采集 src/git.ts]
+    C --> D[分类引擎 src/classifier.ts]
+    D --> E[风险引擎 src/risk.ts]
+    E --> F[可选LLM摘要 src/llm.ts]
+    F --> G[报告构建 src/report.ts]
+    G --> H[Markdown/JSON输出]
+    A2 --> I[静态页面 web/index.html]
 ```
 
 ## 技术栈
@@ -21,15 +25,20 @@ sequenceDiagram
     participant User as 用户
     participant CLI as narrate CLI
     participant Git as Git命令
+    participant App as 应用层
     participant Core as 规则引擎
+    participant LLM as 可选LLM
     participant File as 报告文件
 
     User->>CLI: 输入参数（时间范围/提交列表/tag）
-    CLI->>Git: 获取提交与diff
+    CLI->>App: 调用 runNarration
+    App->>Git: 获取提交与diff
     Git-->>CLI: 提交原始数据
-    CLI->>Core: 分类、风险检测、回滚建议
-    Core-->>CLI: 结构化报告
-    CLI->>File: 写入 Markdown
+    App->>Core: 分类、风险检测、回滚建议
+    App->>LLM: 可选执行摘要生成
+    LLM-->>App: 摘要要点
+    Core-->>App: 结构化报告
+    App->>File: 写入 Markdown/JSON
 ```
 
 ## 重大架构决策
@@ -38,4 +47,3 @@ sequenceDiagram
 | adr_id | title | date | status | affected_modules | details |
 |--------|-------|------|--------|------------------|---------|
 | 暂无 | 暂无 | 暂无 | 暂无 | 暂无 | 暂无 |
-

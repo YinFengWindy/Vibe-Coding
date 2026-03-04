@@ -12,7 +12,7 @@
 
 ### 需求: 命令行生成叙事报告
 **模块:** cli
-根据用户输入的查询条件（时间、tag、SHA）生成结构化 Markdown 报告。
+根据用户输入的查询条件（时间、tag、SHA）生成结构化报告，支持 Markdown 与 JSON。
 
 #### 场景: 指定时间范围生成报告
 用户传入 `--since` 与 `--until` 参数。
@@ -24,11 +24,16 @@
 - 跳过时间查询，直接处理目标提交
 - 按输出语言生成对应报告内容
 
+#### 场景: 启用 LLM 执行摘要
+用户传入 `--with-llm` 且 API Key 可用。
+- 调用兼容 Chat Completions 的接口生成 3-5 条摘要
+- 请求失败时降级为纯规则报告，不阻塞主流程
+
 ## API接口
 ### CLI narrate
 **描述:** 报告生成入口命令
-**输入:** 命令参数（时间范围、提交列表、语言、输出路径）
-**输出:** 终端统计信息 + Markdown 报告文件
+**输入:** 命令参数（仓库路径、提交查询、语言、格式、LLM选项）
+**输出:** 终端统计信息 + Markdown/JSON 报告文件
 
 ## 数据模型
 ### CliOptions
@@ -38,13 +43,16 @@
 | until | string | 可选结束日期 |
 | commits | string[] | 可选提交列表 |
 | lang | "zh" \| "en" | 报告语言 |
-| output | string | 报告路径 |
+| format | "markdown" \| "json" \| "both" | 输出格式 |
+| output | string | Markdown 输出路径 |
+| jsonOutput | string | JSON 输出路径 |
+| withLlm | boolean | 是否启用 LLM |
 
 ## 依赖
+- app-core
 - git-reader
 - narration-core
 - report-renderer
 
 ## 变更历史
 - 初始化阶段，暂无历史方案包记录
-

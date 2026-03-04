@@ -23,9 +23,11 @@
 | 模块名称 | 职责 | 状态 | 文档 |
 |---------|------|------|------|
 | cli | 解析参数并组织整体流程 | 🚧开发中 | [modules/cli.md](modules/cli.md) |
+| app-core | CLI/Web 共用应用层，统一编排处理流程 | 🚧开发中 | [modules/app-core.md](modules/app-core.md) |
 | git-reader | 读取提交、文件列表与差异内容 | 🚧开发中 | [modules/git-reader.md](modules/git-reader.md) |
 | narration-core | 提交分类、风险识别、回滚建议生成 | 🚧开发中 | [modules/narration-core.md](modules/narration-core.md) |
 | report-renderer | 报告结构构建与 Markdown 渲染 | 🚧开发中 | [modules/report-renderer.md](modules/report-renderer.md) |
+| web-ui | 提供可视化表单、API 调用与报告预览 | 🚧开发中 | [modules/web-ui.md](modules/web-ui.md) |
 
 ---
 
@@ -35,4 +37,3 @@
 - [API 手册](api.md)
 - [数据模型](data.md)
 - [变更历史](../history/index.md)
-

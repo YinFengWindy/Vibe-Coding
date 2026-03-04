@@ -1,4 +1,4 @@
-import { ClassifiedCommit, CommitRecord, ChangeType } from "./types.js";
+import { ClassifiedCommit, CommitRecord, ChangeType, Lang } from "./types.js";
 
 function hasAny(text: string, patterns: RegExp[]): boolean {
   return patterns.some((p) => p.test(text));
@@ -19,14 +19,14 @@ function shortSha(sha: string): string {
   return sha.slice(0, 7);
 }
 
-function summarize(record: CommitRecord, type: ChangeType, lang: "zh" | "en"): string {
+function summarize(record: CommitRecord, type: ChangeType, lang: Lang): string {
   if (lang === "en") {
     return `[${type}] ${record.subject} (${record.changedFiles.length} files, ${shortSha(record.sha)})`;
   }
   return `[${type}] ${record.subject}（${record.changedFiles.length} 个文件，${shortSha(record.sha)}）`;
 }
 
-export function classify(commits: CommitRecord[], lang: "zh" | "en"): ClassifiedCommit[] {
+export function classify(commits: CommitRecord[], lang: Lang): ClassifiedCommit[] {
   return commits.map((commit) => {
     const type = detectType(commit);
     return {
